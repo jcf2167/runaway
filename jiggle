@@ -1,0 +1,34 @@
+#!/bin/bash 
+
+macaddress=$(openssl rand -hex 6 | sed 's/\(..\)/\1:/g;s/.$//')
+echo "new mac address: "
+echo -e "$macaddress \n"
+second=$(echo $macaddress | head -c 2 | tail -c 1)
+fix=$(echo $macaddress | tr $second "2")
+echo "replacing second letter: "
+echo -e "$second\n"
+
+echo "fixed: " 
+echo -e "$fix\n"
+echo "done"
+pw=$(head -1 pw) 
+if [ "$(whoami)" != "root" ]; then
+	echo "you did not have root access"
+	echo $pw | sudo -S ifconfig en0 ether $fix	
+	echo "printing new MAC address"
+	echo $pw | sudo -S ifconfig en0 | grep ether 
+else 
+	ifconfig en0 ether $fix
+
+fi
+
+echo "final confirmation of new mac address"
+ifconfig en0 ether $fix
+
+echo $pw | sudo -S ifconfig en0 down
+echo "turning internet back up"
+echo $pw | sudo -S ifconfig en0 up 
+
+
+
+
